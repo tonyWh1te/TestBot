@@ -1,9 +1,12 @@
 require('dotenv').config(); //подключили константу с токеном бота
+
 const { Telegraf } = require('telegraf'),
   { getCountryMenu } = require('./keyboards'),
   text = require('./const'), //импорт объекта
   api = require('covid19-api'),
   bot = new Telegraf(process.env.BOT_TOKEN);
+
+let country;
 
 bot.start((ctx) =>
   ctx.replyWithHTML(
@@ -11,27 +14,56 @@ bot.start((ctx) =>
     Приветствую тебя, <b> ${
       ctx.message.from.first_name ? ctx.message.from.first_name : 'незнакомец'
     }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(обязательно вводи название на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
-  `,
-    getCountryMenu()
+  `
   )
 );
 
 bot.help((ctx) => ctx.reply(text.countries_list));
 
+const countrySearch = (countrys, searchCountry) => {
+  for (let i = 0; i < countrys.length; i++) {
+    if (
+      countrys[i].Country.toLowerCase() === searchCountry.toLocaleLowerCase()
+    ) {
+      return countrys[i];
+    }
+  }
+
+  return undefined;
+};
+
+bot.hears('Статистика за день', (ctx) => {
+  const formatData = `
+Страна: <i>${country.Country}</i>
+Новых случаев: <i>${country.NewCases}</i>
+Новых смертей: <i>${country.NewDeaths}</i>
+Новых вылечившихся: <i>${country.NewRecovered}</i>
+  `;
+
+  ctx.replyWithHTML(formatData);
+});
+
+bot.hears('Статистика за все время', (ctx) => {
+  const formatData = `
+Страна: <i>${country.Country}</i>
+Случаи: <i>${country.TotalCases}</i>
+Смертей: <i>${country.TotalDeaths}</i>
+Вылечились: <i>${country.TotalRecovered}</i>
+  `;
+
+  ctx.replyWithHTML(formatData);
+});
+
 bot.on('text', async (ctx) => {
   try {
     let data = {};
-    data = await api.getReportsByCountries(ctx.message.text);
-    const obj = data[0][0];
+    data = await api.getReports();
 
-    const formatData = `
-Страна: <i>${obj.country}</i>
-Случаи: <i>${obj.cases}</i>
-Смертей: <i>${obj.deaths}</i>
-Вылечились: <i>${obj.recovered}</i>
-    `;
+    country = countrySearch(data[0][0].table[0], ctx.message.text);
 
-    ctx.replyWithHTML(formatData);
+    if (!country) throw new Error();
+
+    ctx.reply('Страна найдена', getCountryMenu());
   } catch (error) {
     ctx.reply(text.error_message);
   }
