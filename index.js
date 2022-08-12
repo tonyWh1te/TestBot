@@ -6,25 +6,36 @@ const { Telegraf } = require('telegraf'),
   api = require('covid19-api'),
   bot = new Telegraf(process.env.BOT_TOKEN);
 
-let country;
+let country = '';
 
 bot.start((ctx) =>
   ctx.replyWithHTML(
     `
     Приветствую тебя, <b> ${
       ctx.message.from.first_name ? ctx.message.from.first_name : 'незнакомец'
-    }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(обязательно вводи название на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
+    }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(названия можно вводить как на русском, так и на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
   `
   )
 );
 
-bot.help((ctx) => ctx.reply(text.countries_list));
+bot.help(async (ctx) => {
+  const arrPhoto = [{}, {}, {}, {}, {}, {}];
+
+  arrPhoto.forEach((photo, i) => {
+    photo.type = 'photo';
+    photo.media = {
+      source: `img/${i + 1}dic.png`,
+    };
+  });
+
+  await ctx.replyWithMediaGroup(arrPhoto);
+
+  await ctx.reply(text.dicExplanation);
+});
 
 const countrySearch = (countrys, searchCountry) => {
   for (let i = 0; i < countrys.length; i++) {
-    if (
-      countrys[i].Country.toLowerCase() === searchCountry.toLocaleLowerCase()
-    ) {
+    if (countrys[i].Country.toLowerCase() === searchCountry.toLowerCase()) {
       return countrys[i];
     }
   }
@@ -35,9 +46,11 @@ const countrySearch = (countrys, searchCountry) => {
 bot.hears('Статистика за день', (ctx) => {
   const formatData = `
 Страна: <i>${country.Country}</i>
-Новых случаев: <i>${country.NewCases}</i>
-Новых смертей: <i>${country.NewDeaths}</i>
-Новых вылечившихся: <i>${country.NewRecovered}</i>
+Новых случаев: <i>${country.NewCases ? country.NewCases : 'не обнаружено'}</i>
+Новых смертей: <i>${country.NewDeaths ? country.NewDeaths : 'не обнаружено'}</i>
+Новых вылечившихся: <i>${
+    country.NewRecovered ? country.NewRecovered : 'не обнаружено'
+  }</i>
   `;
 
   ctx.replyWithHTML(formatData);
@@ -56,10 +69,25 @@ bot.hears('Статистика за все время', (ctx) => {
 
 bot.on('text', async (ctx) => {
   try {
+    if (/[а-я]/gi.test(ctx.message.text)) {
+      const arr = Object.entries(text.countries_dictionary)
+        .filter(
+          (item) => item[1].toLowerCase() === ctx.message.text.toLowerCase()
+        )
+        .map((item) => item[0]);
+
+      country = arr[0];
+
+      if (!country) throw new Error();
+    }
+
     let data = {};
     data = await api.getReports();
 
-    country = countrySearch(data[0][0].table[0], ctx.message.text);
+    country = countrySearch(
+      data[0][0].table[0],
+      !country ? ctx.message.text : country
+    );
 
     if (!country) throw new Error();
 

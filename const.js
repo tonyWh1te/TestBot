@@ -5,70 +5,215 @@ const commands = `
 
 const error_message = `Введена неверная страна. Посмотрите /help`;
 
-const countries_list = `
-afghanistan, albania, algeria, andorra, angola, anguilla, antigua-and-barbuda, argentina, armenia, aruba, australia, austria, azerbaijan
+const countries_dictionary = {
+  afghanistan: 'Афганистан',
+  albania: 'Албания',
+  algeria: 'Алгерия',
+  andorra: 'Андорра',
+  angola: 'Ангола',
+  anguilla: 'Ангилья',
+  'antigua and barbuda': 'Антигуа и Барбуда',
+  argentina: 'Аргентина',
+  armenia: 'Армения',
+  aruba: 'Аруба',
+  australia: 'Австралия',
+  austria: 'Австрия',
+  azerbaijan: 'Азербайджан',
+  bahamas: 'Багамы',
+  bahrain: 'Бахрейн',
+  bangladesh: 'Бангладеш',
+  barbados: 'Барбадос',
+  belarus: 'Беларусь',
+  belgium: 'Бельгия',
+  belize: 'Белиз',
+  benin: 'Бенин',
+  bermuda: 'Бермуды',
+  bhutan: 'Бутан',
+  bolivia: 'Боливия',
+  'bosnia and herzegovina': 'Босния и Герцеговина',
+  botswana: 'Ботсвана',
+  brazil: 'Бразилия',
+  'british virgin islands': 'Британские Виргинские острова',
+  'brunei darussalam': 'Бруней',
+  bulgaria: 'Болгария',
+  'burkina faso': 'Буркина Фасо',
+  burundi: 'Бурунди',
+  'cabo verde': 'Кабо Верде',
+  cambodia: 'Камбоджа',
+  cameroon: 'Камерун',
+  canada: 'Канада',
+  'caribbean netherlands': 'Карибские острова',
+  'cayman islands': 'Каймановы острова',
+  chad: 'Чад',
+  'channel islands': 'Нормандские острова',
+  chile: 'Чили',
+  china: 'Китай',
+  colombia: 'Колумбия',
+  congo: 'Конго',
+  'costa rica': 'Коста-Рика',
+  croatia: 'Хорватия',
+  cuba: 'Куба',
+  curacao: 'Кюрасао',
+  cyprus: 'Кипр',
+  czechia: 'Чехия',
+  car: 'Центральная Африка',
+  denmark: 'Дания',
+  djibouti: 'Джибути',
+  dominica: 'Доминика',
+  'dominican republic': 'Доминиканы',
+  ecuador: 'Эквадор',
+  egypt: 'Египт',
+  'el salvador': 'Сальвадор',
+  'equatorial guinea': 'Экваториальная Гвинея',
+  eritrea: 'Эритрея',
+  estonia: 'Эстония',
+  ethiopia: 'Эфиопия',
+  'faeroe islands': 'Фарерские острова',
+  'falkland islands': 'Фолклендские острова',
+  fiji: 'Фиджи',
+  finland: 'Финляндия',
+  france: 'Франция',
+  'french guiana': 'Французская Гвиана',
+  'french polynesia': 'Французская Полинезия',
+  gabon: 'Габон',
+  gambia: 'Гамбия',
+  georgia: 'Грузия',
+  germany: 'Германия',
+  ghana: 'Гана',
+  gibraltar: 'Гибралтар',
+  greece: 'Греция',
+  greenland: 'Гренладния',
+  grenada: 'Гренада',
+  guadeloupe: 'Гваделупа',
+  guatemala: 'Гватемала',
+  guinea: 'Гвинея',
+  'guinea-bissau': 'Гвинея-Бисау',
+  guyana: 'Гайана',
+  haiti: 'Гаити',
+  honduras: 'Гондурас',
+  hungary: 'Венгрия',
+  'hong kong': 'Гонконг',
+  iceland: 'Исландия',
+  india: 'Индия',
+  indonesi: 'Индонезия',
+  iran: 'Иран',
+  iraq: 'Ирак',
+  ireland: 'Ирландия',
+  'isle of man': 'остров Мэн',
+  israel: 'Израиль',
+  italy: 'Италия',
+  'ivory coast': 'Кот-дИвуар',
+  jamaica: 'Ямайка',
+  japan: 'Япония',
+  jordan: 'Иордания',
+  kazakhstan: 'Казахстан',
+  kenya: 'Кения',
+  kuwait: 'Кувейт',
+  kyrgyzstan: 'Киргизия',
+  laos: 'Лаос',
+  latvia: 'Латвия',
+  lebanon: 'Ливан',
+  liberia: 'Либерия',
+  libya: 'Ливия',
+  liechtenstein: 'Лихтенштейн',
+  lithuania: 'Литва',
+  luxembourg: 'Люксембург',
+  macedonia: 'Македония',
+  madagascar: 'Мадагаскар',
+  malawi: 'Малави',
+  malaysia: 'Малайзия',
+  maldives: 'Мальдивы',
+  mali: 'Мали',
+  malta: 'Мальта',
+  martinique: 'Мартиника',
+  mauritania: 'Мавритания',
+  mauritius: 'остров Маврикий',
+  mayotte: 'Майотта',
+  mexico: 'Мексика',
+  moldova: 'Молдавия',
+  monaco: 'Монако',
+  mongolia: 'Монголия',
+  montenegro: 'Черногория',
+  montserrat: 'Монтсеррат',
+  morocco: 'Марокко',
+  mozambique: 'Мозамбик',
+  myanmar: 'Мьянма',
+  macao: 'Макао',
+  namibia: 'Намибия',
+  nepal: 'Непал',
+  netherlands: 'Нидерланды',
+  'new caledonia': 'Новая Каледония',
+  'new zealand': 'Новая Зеландия',
+  nicaragua: 'Никарагуа',
+  niger: 'Нигер',
+  nigeria: 'Нигерия',
+  norway: 'НОрвегия',
+  oman: 'Оман',
+  pakistan: 'Пакистан',
+  panama: 'Панама',
+  'papua new guinea': 'Папуа-Новая Гвинея',
+  paraguay: 'Парагвай',
+  peru: 'Перу',
+  philippines: 'Филиппины',
+  poland: 'Польша',
+  portugal: 'Португалия',
+  palestine: 'Палестина',
+  qatar: 'катар',
+  reunion: 'Реюньон',
+  romania: 'Румыния',
+  russia: 'Россия',
+  rwanda: 'Руанда',
+  'saint kitts and nevis': 'Сент-Китс и Невис',
+  'saint lucia': 'Сент-Люсия',
+  'saint martin': 'Сен-Мартен',
+  'san marino': 'Сан-Марино',
+  'saudi arabia': 'Саудовская Аравия',
+  senegal: 'Сенегал',
+  serbia: 'Сербия',
+  seychelles: 'Сейшелы',
+  'sierra leone': 'Сьерра-Леоне',
+  singapore: 'Сингапур',
+  's. korea': 'Северная Корея',
+  'sint maarten': 'Синт-Мартен',
+  slovakia: 'Словакия',
+  slovenia: 'Словения',
+  somalia: 'Сомали',
+  'south africa': 'Южная Африка',
+  spain: 'Испания',
+  'sri lanka': 'Шри-Ланка',
+  sudan: 'Судан',
+  suriname: 'Суринам',
+  swaziland: 'Эсватини',
+  sweden: 'Швеция',
+  switzerland: 'Швейцария',
+  syria: 'Сирия',
+  taiwan: 'Тайвань',
+  tanzania: 'Танзания',
+  thailand: 'Тайланд',
+  'timor-leste': 'Восточный Тимор',
+  togo: 'Того',
+  'trinidad and tobago': 'Тринидад и Тобаго',
+  tunisia: 'Тунис',
+  turkey: 'Турция',
+  'turks and caico': 'Острова Теркс и Кайкос',
+  uganda: 'Уганда',
+  uk: 'Великобритнаия',
+  ukraine: 'Украина',
+  uae: 'Обьединенные Арабские Эмираты',
+  uruguay: 'Уругвай',
+  usa: 'США',
+  uzbekista: 'Узбекистан',
+  venezuela: 'Венесуэла',
+  vietnam: 'Вьетнам',
+  zambia: 'Замбия',
+  zimbabwe: 'Зимбабве',
+};
 
-bahamas, bahrain, bangladesh, barbados, belarus, belgium, belize, benin, bermuda, bhutan, bolivia, bosnia-and-herzegovina, botswana, brazil, 
-british-virgin-islands, brunei-darussalam, bulgaria, burkina-faso, burundi
-
-cabo-verde, cambodia, cameroon, canada, caribbean-netherlands, cayman-islands, central-african-republic, chad, channel-islands, chile, china, china-hong-kong-sar, china-macao-sar, colombia, congo, costa-rica, cote-d-ivoire, croatia, cuba, curacao, cyprus, czech-republic
-
-democratic-republic-of-the-congo, denmark, djibouti, dominica, dominican-republic
-
-ecuador, egypt, el-salvador, equatorial-guinea, eritrea, estonia, ethiopia
-
-faeroe-islands, falkland-islands-malvinas, fiji, finland, france, french-guiana, french-polynesia
-
-gabon, gambia, georgia, germany, ghana, gibraltar, greece, greenland, grenada, guadeloupe, guatemala, guinea, guinea-bissau, guyana
-
-haiti, holy-see, honduras, hungary
-
-iceland, india, indonesia, iran, iraq, ireland, isle-of-man, israel, italy
-
-jamaica, japan, jordan
-
-kazakhstan, kenya, kuwait, kyrgyzstan
-
-laos, latvia, lebanon, liberia, libya, liechtenstein, lithuania, luxembourg
-
-macedonia, madagascar, malawi, malaysia, maldives, mali, malta, martinique, mauritania, mauritius, mayotte, mexico, moldova, monaco, mongolia, montenegro, montserrat, morocco, mozambique, myanmar
-
-namibia, nepal, netherlands, new-caledonia, new-zealand, nicaragua, niger, nigeria, norway
-
-oman
-
-pakistan, panama, papua-new-guinea, paraguay, peru, philippines, poland, portugal
-
-qatar
-
-reunion, romania, russia, rwanda
-
-saint-barthelemy, saint-kitts-and-nevis, saint-lucia, saint-martin, saint-vincent-and-the-grenadines, san-marino, saudi-arabia, senegal, serbia, seychelles, sierra-leone, singapore, sint-maarten, slovakia, slovenia, somalia, south-africa, south-korea, spain, sri-lanka, state-of-palestine, sudan, suriname, swaziland, sweden, switzerland, syria
-
-taiwan, tanzania, thailand, timor-leste, togo, trinidad-and-tobago, tunisia, turkey, turks-and-caicos-islands
-
-uganda uk ukraine united-arab-emirates uruguay us uzbekistan
-
-venezuela, viet-nam
-
-zambia, zimbabwe
-`;
-
-const text1 = `
-1 текст для проверки обработчика и <a href="https://youtube.com/">ссылка</a>
-`;
-
-const text2 = `
-2 текст для проверки обработчика и <a href="https://youtube.com/">ссылка</a>
-`;
-
-const text3 = `
-3 текст для проверки обработчика и <a href="https://youtube.com/">ссылка</a>
+const dicExplanation = `
+Список стран, доступный на 2 языках.
 `;
 
 module.exports.commands = commands;
-module.exports.text1 = text1;
-module.exports.text2 = text2;
-module.exports.text3 = text3;
-module.exports.countries_list = countries_list;
+module.exports.dicExplanation = dicExplanation;
 module.exports.error_message = error_message;
+module.exports.countries_dictionary = countries_dictionary;
