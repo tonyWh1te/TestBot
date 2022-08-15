@@ -1,12 +1,11 @@
 require('dotenv').config(); //подключили константу с токеном бота
 
-const { Telegraf } = require('telegraf'),
+const { Telegraf, Markup } = require('telegraf'),
   { getCountryMenu } = require('./keyboards'),
+  { addCountry, getCountry } = require('./db'),
   text = require('./const'), //импорт объекта
   api = require('covid19-api'),
   bot = new Telegraf(process.env.BOT_TOKEN);
-
-let country = '';
 
 bot.start((ctx) =>
   ctx.replyWithHTML(
@@ -14,7 +13,8 @@ bot.start((ctx) =>
     Приветствую тебя, <b> ${
       ctx.message.from.first_name ? ctx.message.from.first_name : 'незнакомец'
     }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(названия можно вводить как на русском, так и на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
-  `
+  `,
+    Markup.removeKeyboard()
   )
 );
 
@@ -43,31 +43,39 @@ const countrySearch = (countrys, searchCountry) => {
   return undefined;
 };
 
-bot.hears('Статистика за день', (ctx) => {
+bot.hears('Статистика за день', async (ctx) => {
+  const data = await getCountry();
+
   const formatData = `
-Страна: <i>${country.Country}</i>
-Новых случаев: <i>${country.NewCases ? country.NewCases : 'не обнаружено'}</i>
-Новых смертей: <i>${country.NewDeaths ? country.NewDeaths : 'не обнаружено'}</i>
+Страна: <i>${data.Country}</i>
+Новых случаев: <i>${data.NewCases ? data.NewCases : 'не обнаружено'}</i>
+Новых смертей: <i>${data.NewDeaths ? data.NewDeaths : 'не обнаружено'}</i>
 Новых вылечившихся: <i>${
-    country.NewRecovered ? country.NewRecovered : 'не обнаружено'
+    data.NewRecovered ? data.NewRecovered : 'не обнаружено'
   }</i>
   `;
 
   ctx.replyWithHTML(formatData);
 });
 
-bot.hears('Статистика за все время', (ctx) => {
+bot.hears('Статистика за все время', async (ctx) => {
+  const data = await getCountry();
+
   const formatData = `
-Страна: <i>${country.Country}</i>
-Случаи: <i>${country.TotalCases}</i>
-Смертей: <i>${country.TotalDeaths}</i>
-Вылечились: <i>${country.TotalRecovered}</i>
+Страна: <i>${data.Country}</i>
+Случаи: <i>${data.TotalCases ? data.TotalCases : 'не обнаружено'}</i>
+Смертей: <i>${data.TotalDeaths ? data.TotalDeaths : 'не обнаружено'}</i>
+Вылечились: <i>${
+    data.TotalRecovered ? data.TotalRecovered : 'не обнаружено'
+  }</i>
   `;
 
   ctx.replyWithHTML(formatData);
 });
 
 bot.on('text', async (ctx) => {
+  let country = '';
+
   try {
     if (/[а-я]/gi.test(ctx.message.text)) {
       const arr = Object.entries(text.countries_dictionary)
@@ -92,6 +100,8 @@ bot.on('text', async (ctx) => {
     if (!country) throw new Error();
 
     ctx.reply('Страна найдена', getCountryMenu());
+
+    addCountry(country);
   } catch (error) {
     ctx.reply(text.error_message);
   }
