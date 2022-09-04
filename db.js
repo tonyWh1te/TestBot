@@ -1,6 +1,6 @@
 const countryList = [];
 
-const addCountry = (object) => countryList.unshift(object);
+const addCountry = (array) => countryList.unshift(array);
 
 const getCountry = () =>
   new Promise((resolve) => setTimeout(() => resolve(countryList[0]), 500));

@@ -212,8 +212,10 @@ const countries_dictionary = {
 const dicExplanation = `
 Список стран, доступный на 2 языках.
 `;
+const load_message = 'Загружаю информацию....';
 
 module.exports.commands = commands;
 module.exports.dicExplanation = dicExplanation;
 module.exports.error_message = error_message;
+module.exports.load_message = load_message;
 module.exports.countries_dictionary = countries_dictionary;

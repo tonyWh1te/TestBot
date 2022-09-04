@@ -3,11 +3,12 @@ require('dotenv').config(); //подключили константу с ток�
 const { Telegraf, Markup } = require('telegraf'),
   { getCountryMenu } = require('./keyboards'),
   { addCountry, getCountry } = require('./db'),
+  dataFormatting = require('./utils'),
   text = require('./const'), //импорт объекта
   api = require('covid19-api'),
   bot = new Telegraf(process.env.BOT_TOKEN);
 
-bot.start((ctx) =>
+bot.start((ctx) => {
   ctx.replyWithHTML(
     `
     Приветствую тебя, <b> ${
@@ -15,8 +16,8 @@ bot.start((ctx) =>
     }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(названия можно вводить как на русском, так и на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
   `,
     Markup.removeKeyboard()
-  )
-);
+  );
+});
 
 bot.help(async (ctx) => {
   const arrPhoto = [{}, {}, {}, {}, {}, {}];
@@ -40,70 +41,91 @@ const countrySearch = (countrys, searchCountry) => {
     }
   }
 
-  return undefined;
+  return '';
 };
 
 bot.hears('Статистика за день', async (ctx) => {
   const data = await getCountry();
+  let formatData = '';
 
-  const formatData = `
-Страна: <i>${data.Country}</i>
-Новых случаев: <i>${data.NewCases ? data.NewCases : 'не обнаружено'}</i>
-Новых смертей: <i>${data.NewDeaths ? data.NewDeaths : 'не обнаружено'}</i>
-Новых вылечившихся: <i>${
-    data.NewRecovered ? data.NewRecovered : 'не обнаружено'
-  }</i>
-  `;
+  data.forEach(({ Country, NewCases, NewDeaths, NewRecovered }) => {
+    formatData += dataFormatting({
+      country: Country,
+      cases: NewCases,
+      deaths: NewDeaths,
+      recovered: NewRecovered,
+    });
+  });
 
   ctx.replyWithHTML(formatData);
 });
 
 bot.hears('Статистика за все время', async (ctx) => {
   const data = await getCountry();
+  let formatData = '';
 
-  const formatData = `
-Страна: <i>${data.Country}</i>
-Случаи: <i>${data.TotalCases ? data.TotalCases : 'не обнаружено'}</i>
-Смертей: <i>${data.TotalDeaths ? data.TotalDeaths : 'не обнаружено'}</i>
-Вылечились: <i>${
-    data.TotalRecovered ? data.TotalRecovered : 'не обнаружено'
-  }</i>
-  `;
+  data.forEach(({ Country, TotalCases, TotalDeaths, TotalRecovered }) => {
+    formatData += dataFormatting({
+      country: Country,
+      cases: TotalCases,
+      deaths: TotalDeaths,
+      recovered: TotalRecovered,
+    });
+  });
 
   ctx.replyWithHTML(formatData);
 });
 
 bot.on('text', async (ctx) => {
-  let country = '';
+  let resultStr = '';
+  const countrys = [];
+
+  await ctx.reply(text.load_message);
 
   try {
-    if (/[а-я]/gi.test(ctx.message.text)) {
-      const arr = Object.entries(text.countries_dictionary)
-        .filter(
-          (item) => item[1].toLowerCase() === ctx.message.text.toLowerCase()
-        )
-        .map((item) => item[0]);
-
-      country = arr[0];
-
-      if (!country) throw new Error();
-    }
-
     let data = {};
     data = await api.getReports();
 
-    country = countrySearch(
-      data[0][0].table[0],
-      !country ? ctx.message.text : country
+    ctx.message.text
+      .trim()
+      .split(',')
+      .forEach((messageItem) => {
+        let country;
+
+        if (/[а-я]/gi.test(ctx.message.text)) {
+          const arr = Object.entries(text.countries_dictionary)
+            .filter(
+              (item) => item[1].toLowerCase() === messageItem.toLowerCase()
+            )
+            .map((item) => item[0]);
+
+          country = arr[0];
+
+          if (!country) throw new Error();
+        }
+
+        country = countrySearch(
+          data[0][0].table[0],
+          !country ? ctx.message.text : country
+        );
+
+        if (!country) throw new Error();
+
+        countrys.push(country);
+
+        resultStr += `\n<b>${messageItem}</b>`;
+      });
+
+    addCountry(countrys);
+
+    await ctx.replyWithHTML(
+      `Я нашел информацию по данным странам: ${resultStr}`,
+      getCountryMenu()
     );
 
-    if (!country) throw new Error();
-
-    ctx.reply('Страна найдена', getCountryMenu());
-
-    addCountry(country);
+    resultStr = '';
   } catch (error) {
-    ctx.reply(text.error_message);
+    await ctx.reply(text.error_message);
   }
 });
 
