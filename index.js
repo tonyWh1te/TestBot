@@ -3,7 +3,7 @@ require('dotenv').config(); //подключили константу с ток�
 const { Telegraf, Markup } = require('telegraf'),
   { getCountryMenu } = require('./keyboards'),
   { addCountry, getCountry } = require('./db'),
-  dataFormatting = require('./utils'),
+  { dataFormatting, englishTranslation } = require('./utils'),
   text = require('./const'), //импорт объекта
   api = require('covid19-api'),
   bot = new Telegraf(process.env.BOT_TOKEN);
@@ -13,8 +13,8 @@ bot.start((ctx) => {
     `
     Приветствую тебя, <b> ${
       ctx.message.from.first_name ? ctx.message.from.first_name : 'незнакомец'
-    }</b>!\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(названия можно вводить как на русском, так и на английском)</i></b>!\nПо команде /help можно увидеть весь список стран. 
-  `,
+    }</b>!${text.description}
+    `,
     Markup.removeKeyboard()
   );
 });
@@ -76,6 +76,10 @@ bot.hears('Статистика за все время', async (ctx) => {
   ctx.replyWithHTML(formatData);
 });
 
+bot.on('sticker', (ctx) => ctx.reply('👍'));
+
+bot.hears(text.regexEmoji, (ctx) => ctx.reply('👍'));
+
 bot.on('text', async (ctx) => {
   let resultStr = '';
   const countrys = [];
@@ -87,21 +91,16 @@ bot.on('text', async (ctx) => {
     data = await api.getReports();
 
     ctx.message.text
-      .trim()
+      .replace(/[\s\d!?-_*#()]/g, '')
       .split(',')
       .forEach((messageItem) => {
         let country;
 
-        if (/[а-я]/gi.test(ctx.message.text)) {
-          const arr = Object.entries(text.countries_dictionary)
-            .filter(
-              (item) => item[1].toLowerCase() === messageItem.toLowerCase()
-            )
-            .map((item) => item[0]);
+        if (/[а-я]/gi.test(messageItem)) {
+          country = englishTranslation(messageItem);
 
-          country = arr[0];
-
-          if (!country) throw new Error();
+          if (!country)
+            throw new Error(`страна ${messageItem} не найдена в моем списке`);
         }
 
         country = countrySearch(
@@ -109,7 +108,8 @@ bot.on('text', async (ctx) => {
           !country ? ctx.message.text : country
         );
 
-        if (!country) throw new Error();
+        if (!country)
+          throw new Error(`страна ${messageItem} не найдена в моем списке`);
 
         countrys.push(country);
 
@@ -125,52 +125,13 @@ bot.on('text', async (ctx) => {
 
     resultStr = '';
   } catch (error) {
-    await ctx.reply(text.error_message);
+    await ctx.replyWithHTML(
+      error.name === 'Error'
+        ? `<b>Ошибка</b>: ${error.message}. Посмотрите /help и попробуйте еще раз.`
+        : error.message
+    );
   }
 });
-
-// bot.command('course', async (ctx) => {
-//   //меню с кнопками
-//   try {
-//     await ctx.replyWithHTML(
-//       //await чтобы сразу несколько команд выполнять с ctx по очереди
-//       '<b>Курсы:</b>',
-//       Markup.inlineKeyboard([
-//         [
-//           Markup.button.callback('Редакторы', 'btn_1'),
-//           Markup.button.callback('Обзоры', 'btn_2'),
-//           Markup.button.callback('JS', 'btn_3'),
-//         ],
-//       ])
-//     );
-//   } catch (error) {
-//     console.error(error);
-//   }
-// });
-
-// addActionBot('btn_1', './img/1.png', text.text1);
-// addActionBot('btn_2', './img/2.png', text.text2);
-// addActionBot('btn_3', '', text.text3);
-
-// function addActionBot(name, src, text) {
-//   bot.action(name, async (ctx) => {
-//     try {
-//       await ctx.answerCbQuery(); //убирает часики обработки на кнопке
-
-//       if (src) {
-//         await ctx.replyWithPhoto({
-//           source: src,
-//         });
-//       }
-
-//       await ctx.replyWithHTML(text, {
-//         disable_web_page_preview: true, //при отправке ссылки не будет отправляться изображение
-//       });
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   });
-// }
 
 bot.launch();
 

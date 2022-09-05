@@ -3,8 +3,6 @@ const commands = `
 /help - Посмотреть список стран
 `;
 
-const error_message = `Введена неверная страна. Посмотрите /help`;
-
 const countries_dictionary = {
   afghanistan: 'Афганистан',
   albania: 'Албания',
@@ -213,9 +211,14 @@ const dicExplanation = `
 Список стран, доступный на 2 языках.
 `;
 const load_message = 'Загружаю информацию....';
+const description = `\n\nЯ - бот, собирающий статистику по коронавирусу. Узнай статистику в своей стране <b><i>(названия можно вводить как на русском, так и на английском)</i></b>!\nПо команде /help можно увидеть весь список стран.\n\nЧтобы узнать статистику по нескольким странам, просто введи их через запятую. 
+`;
+const regexEmoji =
+  /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
 
 module.exports.commands = commands;
 module.exports.dicExplanation = dicExplanation;
-module.exports.error_message = error_message;
 module.exports.load_message = load_message;
+module.exports.description = description;
+module.exports.regexEmoji = regexEmoji;
 module.exports.countries_dictionary = countries_dictionary;
